@@ -208,7 +208,7 @@ if __name__ == "__main__":
 
     # Actual test
 
-    test_lob = generate_synthetic_lob(n_ticks=1000, seed=100)
+    test_lob = generate_synthetic_lob(n_ticks=20000, seed=100)
 
     obi_test = compute_order_book_imbalance(test_lob["bid_v1"], test_lob["ask_v1"])
     mpd_test = compute_micro_price_deviation(
@@ -231,3 +231,22 @@ if __name__ == "__main__":
     print(f"Total Executed Trades:  {metrics['Total Executed Trades']}")
     print(f"Annualized Sharpe Ratio:{metrics['Sharpe Ratio']:.2f}")
     print(f"Maximum Drawdown (MtM): ${metrics['Max Drawdown ($)']:,.4f}")
+
+# --- Information Coefficient (IC) Evaluation ---
+import scipy.stats as stats
+
+train_df["fwd_ret"] = train_df["mid_price"].pct_change().shift(-1) if "mid_price" in train_df.columns else fwd_ret_train
+
+# 2. Filter out NaNs, Infs, and zero price rows
+clean_ic_df = train_df.replace([np.inf, -np.inf], np.nan).dropna(subset=["fwd_ret", "obi", "mpd"])
+
+# 3. Compute Pearson and Spearman ICs
+pearson_obi, _ = stats.pearsonr(clean_ic_df["obi"], clean_ic_df["fwd_ret"])
+pearson_mpd, _ = stats.pearsonr(clean_ic_df["mpd"], clean_ic_df["fwd_ret"])
+
+spearman_obi, _ = stats.spearmanr(clean_ic_df["obi"], clean_ic_df["fwd_ret"])
+spearman_mpd, _ = stats.spearmanr(clean_ic_df["mpd"], clean_ic_df["fwd_ret"])
+
+print("\n--- Information Coefficients ---")
+print(f"OBI Pearson IC:   {pearson_obi:.4f}  |  Spearman Rank IC: {spearman_obi:.4f}")
+print(f"MPD Pearson IC:   {pearson_mpd:.4f}  |  Spearman Rank IC: {spearman_mpd:.4f}")

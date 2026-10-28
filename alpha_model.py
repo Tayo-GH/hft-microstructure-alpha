@@ -42,7 +42,7 @@ def compute_ewls_beta(X: np.ndarray, y: np.ndarray, halflife: float) -> np.ndarr
 
 def compute_adf_test(series: pd.Series) -> dict:
     clean_series = series.dropna()
-    res = adfuller(clean_series, autolag="AIC", result_object=True)
+   res = adfuller(clean_series, autolag="AIC")
     return {
         "adf_stat": float(res[0]),
         "p_value": float(res[1]),
